@@ -1,0 +1,38 @@
+[
+  {
+    "target_name": "crkbd-rev1-avr",
+    "setup_cmd": "sudo apt-get update && sudo apt-get install -y gcc-avr avr-libc binutils-avr dfu-util && pip install qmk",
+    "build_cmd": "export PATH=$HOME/.local/bin:$PATH && qmk compile -kb crkbd/rev1 -km default && mkdir -p .build/membrowse_ld && avr-gcc -mmcu=atmega32u4 -Wl,--verbose -x c /dev/null -o /dev/null 2>&1 | sed -n '/^======/,/^======/p' | grep -v '^======' > .build/membrowse_ld/avr5.ld",
+    "elf": ".build/crkbd_rev1_default.elf",
+    "ld": ".build/membrowse_ld/avr5.ld",
+    "map_file": ".build/crkbd_rev1_default.map",
+    "linker_vars": "__TEXT_REGION_ORIGIN__=0 __TEXT_REGION_LENGTH__=28K __DATA_REGION_ORIGIN__=0x800100 __DATA_REGION_LENGTH__=2560 __EEPROM_REGION_LENGTH__=1K __FUSE_REGION_LENGTH__=1K __LOCK_REGION_LENGTH__=1K __SIGNATURE_REGION_LENGTH__=1K __USER_SIGNATURE_REGION_LENGTH__=1K"
+  },
+  {
+    "target_name": "ergodox-ez-avr",
+    "setup_cmd": "sudo apt-get update && sudo apt-get install -y gcc-avr avr-libc binutils-avr dfu-util && pip install qmk",
+    "build_cmd": "export PATH=$HOME/.local/bin:$PATH && qmk compile -kb ergodox_ez/base -km default && mkdir -p .build/membrowse_ld && avr-gcc -mmcu=atmega32u4 -Wl,--verbose -x c /dev/null -o /dev/null 2>&1 | sed -n '/^======/,/^======/p' | grep -v '^======' > .build/membrowse_ld/avr5.ld",
+    "elf": ".build/ergodox_ez_base_default.elf",
+    "ld": ".build/membrowse_ld/avr5.ld",
+    "map_file": ".build/ergodox_ez_base_default.map",
+    "linker_vars": "__TEXT_REGION_ORIGIN__=0 __TEXT_REGION_LENGTH__=32256 __DATA_REGION_ORIGIN__=0x800100 __DATA_REGION_LENGTH__=2560 __EEPROM_REGION_LENGTH__=1K __FUSE_REGION_LENGTH__=1K __LOCK_REGION_LENGTH__=1K __SIGNATURE_REGION_LENGTH__=1K __USER_SIGNATURE_REGION_LENGTH__=1K"
+  },
+  {
+    "target_name": "planck-rev6-stm32f303",
+    "setup_cmd": "sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi binutils-arm-none-eabi dfu-util && pip install qmk",
+    "build_cmd": "export PATH=$HOME/.local/bin:$PATH && qmk compile -kb planck/rev6 -km default && mkdir -p .build/membrowse_ld && for d in lib/chibios/os/common/startup/ARMCMx/compilers/GCC/ld lib/chibios-contrib/os/common/startup/ARMCMx/compilers/GCC/ld platforms/chibios/boards/common/ld; do cp $d/*.ld .build/membrowse_ld/; done",
+    "elf": ".build/planck_rev6_default.elf",
+    "ld": ".build/membrowse_ld/STM32F303xC.ld",
+    "map_file": ".build/planck_rev6_default.map",
+    "linker_vars": ""
+  },
+  {
+    "target_name": "crkbd-rev4_1-rp2040",
+    "setup_cmd": "sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi binutils-arm-none-eabi dfu-util && pip install qmk",
+    "build_cmd": "export PATH=$HOME/.local/bin:$PATH && qmk compile -kb crkbd/rev4_1/standard -km default && mkdir -p .build/membrowse_ld && for d in lib/chibios/os/common/startup/ARMCMx/compilers/GCC/ld lib/chibios-contrib/os/common/startup/ARMCMx/compilers/GCC/ld platforms/chibios/boards/common/ld; do cp $d/*.ld .build/membrowse_ld/; done",
+    "elf": ".build/crkbd_rev4_1_standard_default.elf",
+    "ld": ".build/membrowse_ld/RP2040_FLASH_TIMECRIT.ld",
+    "map_file": ".build/crkbd_rev4_1_standard_default.map",
+    "linker_vars": ""
+  }
+]
