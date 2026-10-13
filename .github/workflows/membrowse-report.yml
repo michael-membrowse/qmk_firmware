@@ -1,0 +1,66 @@
+name: MemBrowse Memory Report
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  load-targets:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Load target matrix
+        id: set-matrix
+        run: echo "matrix=$(jq -c '.' .github/membrowse-targets.json)" >> $GITHUB_OUTPUT
+
+  analyze:
+    needs: load-targets
+    runs-on: ubuntu-latest
+    # QMK's own CI image: toolchains, qmk CLI, Python and pip preinstalled
+    container: ghcr.io/qmk/qmk_cli
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-targets.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+          submodules: recursive
+
+      # The container runs as root while the checkout is owned by the runner
+      # user. actions/checkout only marks the directory safe for its own step,
+      # so without this every later git call fails with "dubious ownership"
+      # and the report is uploaded without commit message, author or parent.
+      - name: Allow git to read the checkout
+        run: git config --global --add safe.directory '*'
+
+      - name: Build
+        run: ${{ matrix.build_cmd }}
+
+      - name: Run MemBrowse analysis
+        uses: membrowse/membrowse-action@v1
+        with:
+          target_name: ${{ matrix.target_name }}
+          elf: ${{ matrix.elf }}
+          ld: ${{ matrix.ld }}
+          map_file: ${{ matrix.map_file }}
+          linker_vars: ${{ matrix.linker_vars }}
+          skip_sections: ${{ matrix.skip_sections }}
+          api_key: ${{ secrets.MEMBROWSE_API_KEY }}
+          api_url: ${{ vars.MEMBROWSE_API_URL }}
+          verbose: INFO
+          # Uncomment to allow CI to pass even when memory budgets are exceeded
+          # dont_fail_on_alerts: true

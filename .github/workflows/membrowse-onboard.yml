@@ -1,0 +1,68 @@
+name: Onboard to MemBrowse
+
+on:
+  workflow_dispatch:
+    inputs:
+      num_commits:
+        description: 'Number of commits to process'
+        required: true
+        default: '100'
+        type: string
+
+jobs:
+  load-targets:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Load target matrix
+        id: set-matrix
+        run: echo "matrix=$(jq -c '.' .github/membrowse-targets.json)" >> $GITHUB_OUTPUT
+
+  onboard:
+    needs: load-targets
+    runs-on: ubuntu-latest
+    # QMK's own CI image: toolchains, qmk CLI, Python and pip preinstalled
+    container: ghcr.io/qmk/qmk_cli
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-targets.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          # Onboard iterates through historical commits, so it needs full history
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Prepare container for historical builds
+        run: |
+          # The container runs as root; let git operate on the runner-owned checkout and submodules
+          git config --global --add safe.directory '*'
+          # The image's qmk CLI runs on Python 3.14, which removed ast.Num. QMK's own
+          # Python only stopped using it in Nov 2025 (#25038), so build older commits
+          # with a qmk CLI on the image's system Python 3.13 instead. appdirs is for
+          # commits before Nov 2024, which still list it in requirements.txt.
+          /usr/bin/python3.13 -m venv --system-site-packages --without-pip /opt/qmk-py313
+          /opt/qmk-py313/bin/python3 -m pip install -q qmk appdirs
+          echo /opt/qmk-py313/bin >> "$GITHUB_PATH"
+
+      - name: Run MemBrowse Onboard Action
+        uses: membrowse/membrowse-action/onboard-action@v1
+        with:
+          target_name: ${{ matrix.target_name }}
+          num_commits: ${{ github.event.inputs.num_commits }}
+          build_script: ${{ matrix.build_cmd }}
+          elf: ${{ matrix.elf }}
+          ld: ${{ matrix.ld }}
+          map_file: ${{ matrix.map_file }}
+          linker_vars: ${{ matrix.linker_vars }}
+          skip_sections: ${{ matrix.skip_sections }}
+          binary_search: 'true'
+          api_key: ${{ secrets.MEMBROWSE_API_KEY }}
+          api_url: ${{ vars.MEMBROWSE_API_URL }}

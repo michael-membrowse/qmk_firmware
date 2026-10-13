@@ -1,0 +1,38 @@
+[
+  {
+    "target_name": "crkbd-rev1-avr",
+    "build_cmd": "mkdir -p .build/membrowse_ld && qmk compile -kb crkbd/rev1 -km default -e DEBUG_ENABLE=yes > .build/membrowse_build.log 2>&1 || { cat .build/membrowse_build.log; exit 1; }; ELF=.build/crkbd_rev1_default.elf && { avr-nm \"$ELF\" | awk '$2==\"A\" && $3 ~ /_REGION_/ {print $3 \" = 0x\" $1 \";\"}'; avr-ld -m \"$(avr-readelf -h \"$ELF\" | sed -n 's/.*avr:\\([0-9]*\\).*/avr\\1/p')\" --verbose | sed -n '/^======/,/^======/p' | grep -v '^======'; } > .build/membrowse_ld/linker.ld",
+    "elf": ".build/crkbd_rev1_default.elf",
+    "ld": ".build/membrowse_ld/linker.ld",
+    "map_file": ".build/crkbd_rev1_default.map",
+    "linker_vars": "",
+    "skip_sections": ""
+  },
+  {
+    "target_name": "ergodox-ez-avr",
+    "build_cmd": "mkdir -p .build/membrowse_ld && qmk compile -kb ergodox_ez/base -km default -e DEBUG_ENABLE=yes > .build/membrowse_build.log 2>&1 || { cat .build/membrowse_build.log; exit 1; }; ELF=.build/ergodox_ez_base_default.elf && { avr-nm \"$ELF\" | awk '$2==\"A\" && $3 ~ /_REGION_/ {print $3 \" = 0x\" $1 \";\"}'; avr-ld -m \"$(avr-readelf -h \"$ELF\" | sed -n 's/.*avr:\\([0-9]*\\).*/avr\\1/p')\" --verbose | sed -n '/^======/,/^======/p' | grep -v '^======'; } > .build/membrowse_ld/linker.ld",
+    "elf": ".build/ergodox_ez_base_default.elf",
+    "ld": ".build/membrowse_ld/linker.ld",
+    "map_file": ".build/ergodox_ez_base_default.map",
+    "linker_vars": "",
+    "skip_sections": ""
+  },
+  {
+    "target_name": "planck-rev6-stm32f303",
+    "build_cmd": "mkdir -p .build/membrowse_ld && qmk compile -kb planck/rev6 -km default -e DEBUG_ENABLE=yes -e VERBOSE_LD_CMD=yes > .build/membrowse_build.log 2>&1 || { cat .build/membrowse_build.log; exit 1; }; LDCMD=$(grep -m1 -- ' -T' .build/membrowse_build.log) && for d in $(echo \"$LDCMD\" | grep -o -- '-L[^ ]*' | sed 's/^-L//' | grep -v '^/'); do cp \"$d\"/*.ld .build/membrowse_ld/; done && cp \"$(echo \"$LDCMD\" | sed 's/.*-T *\\([^ ]*\\.ld\\).*/\\1/')\" .build/membrowse_ld/linker.ld",
+    "elf": ".build/planck_rev6_default.elf",
+    "ld": ".build/membrowse_ld/linker.ld",
+    "map_file": ".build/planck_rev6_default.map",
+    "linker_vars": "",
+    "skip_sections": ".heap"
+  },
+  {
+    "target_name": "crkbd-rev4_1-rp2040",
+    "build_cmd": "mkdir -p .build/membrowse_ld && qmk compile -kb crkbd/rev4_1/standard -km default -e DEBUG_ENABLE=yes -e VERBOSE_LD_CMD=yes > .build/membrowse_build.log 2>&1 || { cat .build/membrowse_build.log; exit 1; }; LDCMD=$(grep -m1 -- ' -T' .build/membrowse_build.log) && for d in $(echo \"$LDCMD\" | grep -o -- '-L[^ ]*' | sed 's/^-L//' | grep -v '^/'); do cp \"$d\"/*.ld .build/membrowse_ld/; done && cp \"$(echo \"$LDCMD\" | sed 's/.*-T *\\([^ ]*\\.ld\\).*/\\1/')\" .build/membrowse_ld/linker.ld",
+    "elf": ".build/crkbd_rev4_1_standard_default.elf",
+    "ld": ".build/membrowse_ld/linker.ld",
+    "map_file": ".build/crkbd_rev4_1_standard_default.map",
+    "linker_vars": "",
+    "skip_sections": ".heap"
+  }
+]
